@@ -13,8 +13,9 @@ import {
   Scene,
   StandardMaterial,
   Vector3,
-  CreateDashedLines,
 } from "@babylonjs/core";
+
+import { SetterOrUpdater } from "recoil";
 const ANGLE_SPEED = 0.002 * Math.PI;
 export class Universe {
   static time: number = 0;
@@ -29,7 +30,14 @@ export class Universe {
   resetCamera: () => void;
   moveCameraTo: (object: Mesh) => void;
 
-  constructor(private scene: Scene, planetList: IPlanetData[]) {
+  constructor(
+    private scene: Scene,
+    planetList: IPlanetData[],
+    private setSummary: SetterOrUpdater<{
+      isOn: boolean;
+      text: string;
+    }>
+  ) {
     //행성 및 라인 생성
     planetList.map((data) => {
       //행성 생성
@@ -39,9 +47,19 @@ export class Universe {
       planet.planet!.actionManager = new ActionManager(scene);
       planet.planet!.actionManager.registerAction(
         new ExecuteCodeAction(ActionManager.OnPickTrigger, (evt) => {
-          if (this.currentPlanet?.name == evt.source.name)
+          setSummary({
+            isOn: false,
+            text: planet.getPlanetData().description,
+          });
+
+          if (this.currentPlanet?.name == evt.source.name) {
             this.detail = !this.detail;
-          else this.detail = false;
+            if (this.detail == false)
+              setSummary({
+                isOn: true,
+                text: planet.getPlanetData().description,
+              });
+          } else this.detail = false;
 
           this.camera.radius = this.detail ? 40 : 70;
           this.camera.lockedTarget = evt.source;
@@ -51,8 +69,12 @@ export class Universe {
 
       planet.planet!.actionManager.registerAction(
         new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, (evt) => {
+          console.log(evt.pointerX, evt.pointerY);
           if (this.detail == false) {
-            console.log("in", evt.source.name);
+            setSummary({
+              isOn: true,
+              text: planet.getPlanetData().description,
+            });
           }
         })
       );
@@ -60,10 +82,15 @@ export class Universe {
       planet.planet!.actionManager.registerAction(
         new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, (evt) => {
           if (this.detail == false) {
-            console.log("out", evt.source.name);
+            setSummary({
+              isOn: false,
+              text: planet.getPlanetData().description,
+            });
           }
         })
       );
+
+      console.log(planet.planet!.actionManager);
       this.planet.push(planet);
 
       //라인생성
@@ -77,10 +104,14 @@ export class Universe {
           )
         );
       }
-      let lines = MeshBuilder.CreateLines("lines", {
-        points: myPoints,
-        updatable: true,
-      });
+      let lines = MeshBuilder.CreateLines(
+        "lines",
+        {
+          points: myPoints,
+          updatable: true,
+        },
+        scene
+      );
     });
 
     //캔버스

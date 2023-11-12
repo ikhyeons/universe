@@ -1,0 +1,15 @@
+.summaryBox {
+  box-sizing: border-box;
+  width: auto;
+  height: 50px;
+  background: rgba(0, 0, 0, 0.2);
+  color: white;
+  border-radius: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  pointer-events: none;
+}

@@ -1,10 +1,11 @@
-import Space from "./components/space/Space";
+import SpaceWrap from "./components/space/spaceWrap";
 import "./App.scss";
+import { RecoilRoot } from "recoil";
 function App() {
   return (
-    <div>
-      <Space />
-    </div>
+    <RecoilRoot>
+      <SpaceWrap />
+    </RecoilRoot>
   );
 }
 
