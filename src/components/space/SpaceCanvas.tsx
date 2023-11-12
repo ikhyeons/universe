@@ -10,7 +10,6 @@ function SpaceCanvas({ onSceneReady, onRender }: BabylonjsProps) {
     const { current: canvas } = reactCanvas;
     const engine = new Engine(canvas, true, { stencil: true });
     const scene = new Scene(engine);
-
     if (scene.isReady()) onSceneReady(scene);
     else scene.onReadyObservable.addOnce((scene) => onSceneReady(scene));
 
