@@ -1,7 +1,5 @@
 import {
   ActionManager,
-  ArcFollowCamera,
-  ArcRotateCamera,
   Color3,
   CreateSphere,
   CubeTexture,
@@ -15,8 +13,9 @@ import {
   Scene,
   StandardMaterial,
   Vector3,
+  CreateDashedLines,
 } from "@babylonjs/core";
-
+const ANGLE_SPEED = 0.002 * Math.PI;
 export class Universe {
   static time: number = 0;
   canvas: Nullable<HTMLCanvasElement>;
@@ -24,43 +23,78 @@ export class Universe {
   light: HemisphericLight;
   background: Mesh;
   planet: Planet[] = [];
-  currentPlanet: Mesh | null = null;
+  currentPlanet: Mesh | null;
   detail: boolean = false;
 
   resetCamera: () => void;
   moveCameraTo: (object: Mesh) => void;
 
   constructor(private scene: Scene, planetList: IPlanetData[]) {
-    //행성 생성
+    //행성 및 라인 생성
     planetList.map((data) => {
+      //행성 생성
       const planet = new Planet(data, this.scene);
       planet.setPosition(0, 0, 0);
       //행성 클릭 시 이벤트 추가
       planet.planet!.actionManager = new ActionManager(scene);
       planet.planet!.actionManager.registerAction(
         new ExecuteCodeAction(ActionManager.OnPickTrigger, (evt) => {
-          if (this.currentPlanet?.name == "core" && evt.source.name == "core")
+          if (this.currentPlanet?.name == evt.source.name)
             this.detail = !this.detail;
-          else this.detail = true;
+          else this.detail = false;
 
-          this.camera.radius = this.detail ? 30 : 70;
+          this.camera.radius = this.detail ? 40 : 70;
           this.camera.lockedTarget = evt.source;
           this.currentPlanet = evt.source;
         })
       );
 
+      planet.planet!.actionManager.registerAction(
+        new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, (evt) => {
+          if (this.detail == false) {
+            console.log("in", evt.source.name);
+          }
+        })
+      );
+
+      planet.planet!.actionManager.registerAction(
+        new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, (evt) => {
+          if (this.detail == false) {
+            console.log("out", evt.source.name);
+          }
+        })
+      );
       this.planet.push(planet);
+
+      //라인생성
+      let myPoints = [];
+      for (let i = 0; i < data.distance * 2700; i++) {
+        myPoints.push(
+          new Vector3(
+            data.distance * 9 * Math.sin((ANGLE_SPEED * i) / data.idleSpeed),
+            data.ydeg * 9 * Math.sin((ANGLE_SPEED * i) / data.idleSpeed),
+            data.distance * 9 * Math.cos((ANGLE_SPEED * i) / data.idleSpeed)
+          )
+        );
+      }
+      let lines = MeshBuilder.CreateLines("lines", {
+        points: myPoints,
+        updatable: true,
+      });
     });
+
     //캔버스
     this.canvas = scene.getEngine().getRenderingCanvas();
     //카메라 생성
     this.camera = new FollowCamera("camera", Vector3.Zero(), scene);
     this.camera.lockedTarget = this.planet[0].planet;
     this.camera.attachControl(true);
-    this.camera.radius = 40;
     this.camera.cameraAcceleration = 0.1;
     scene.activeCameras?.push(this.camera);
     this.currentPlanet = this.planet[0].planet;
+    this.camera.cameraDirection._y = 40;
+    this.camera.cameraDirection._z = 70;
+    this.camera.radius = 70;
     //빛 생성
     this.light = new HemisphericLight("light", new Vector3(0, 0, 0), scene);
     //배경 생성
