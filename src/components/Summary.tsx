@@ -6,7 +6,6 @@ function Summary() {
   const [summary] = useRecoilState(aSummary);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   useEffect(() => {
-    console.log(summary.text);
     document.addEventListener("mousemove", (e) => {
       if (summary.isOn) {
         setPosition({ x: e.screenX, y: e.screenY });
