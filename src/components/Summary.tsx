@@ -8,7 +8,7 @@ function Summary() {
   useEffect(() => {
     document.addEventListener("mousemove", (e) => {
       if (summary.isOn) {
-        setPosition({ x: e.screenX, y: e.screenY });
+        setPosition({ x: e.pageX, y: e.pageY + 100 });
       }
     });
   }, [summary.text]);

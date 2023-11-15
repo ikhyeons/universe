@@ -53,4 +53,4 @@ function Space() {
   return <SpaceCanvas onRender={onRender} onSceneReady={onSceneReady} />;
 }
 
-export default memo(Space);
+export default Space;
